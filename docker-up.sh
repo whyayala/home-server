@@ -33,5 +33,8 @@ sudo mkdir -p /media/Emby \
 sudo mount -t cifs -o username=a4d,password=$1 //net-store.local/Plex /media/Plex/
 sudo mount -t cifs -o username=a4d,password=$1 //net-store.local/Emby /media/Emby/
 
+# Start Docker daemon
+sudo systemctl start docker
+
 # Start container
-sudo docker-compose up -d
+sudo docker compose up -d

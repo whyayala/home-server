@@ -1,5 +1,5 @@
 # Tear down pod container
-sudo docker-compose down
+sudo docker compose down
 
 # Unmount drive
 sudo umount /media/Plex
