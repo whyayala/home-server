@@ -1,0 +1,21 @@
+{
+    "albumFolderFormat": "{ArtistName}/{Flag} {AlbumTitle} [{AlbumID}] [{AlbumYear}]",
+    "apiKeyIndex": 4,
+    "audioQuality": "Master",
+    "checkExist": true,
+    "downloadDelay": true,
+    "downloadPath": "./download/",
+    "includeEP": true,
+    "language": 0,
+    "lyricFile": false,
+    "multiThread": false,
+    "playlistFolderFormat": "Playlist/{PlaylistName}",
+    "saveAlbumInfo": false,
+    "saveCovers": true,
+    "showProgress": true,
+    "showTrackInfo": true,
+    "trackFileFormat": "{TrackNumber} - {TrackTitle} ({AudioQuality})",
+    "usePlaylistFolder": true,
+    "videoFileFormat": "{ArtistsName} - {VideoTitle}{ExplicitFlag}",
+    "videoQuality": "P1080"
+}
