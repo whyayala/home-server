@@ -52,3 +52,14 @@ services:
       - 6555:6555
     privileged: true
     restart: unless-stopped
+
+  tidal:
+    build:
+      - context: .
+      - dockerfile: tidal.Dockerfile
+    container_name: tidal
+    network_mode: host
+    volumes:
+      - downloads:/root/downloads
+      - .tidal-dl.token.json:/root/.tidal-dl.token.json
+      - .tidal-dl.json:/root/.tidal-dl.json

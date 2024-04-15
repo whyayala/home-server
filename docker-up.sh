@@ -16,7 +16,7 @@ sudo apt update -y
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Create plex directories
-sudo mkdir -p /media/Plex \
+mkdir -p /media/Plex \
 	/media/volume/plex/data/temp \
 	/media/volume/plex/config \
 	/media/volume/plex/transcode \
@@ -24,17 +24,17 @@ sudo mkdir -p /media/Plex \
 	/media/Sonarr
 
 # Create emby directories
-sudo mkdir -p /media/Emby \
+mkdir -p /media/Emby \
 	/media/volume/emby/data/temp \
 	/media/volume/emby/config \
 	/media/volume/emby/transcode
 
 # Mount network drive
-sudo mount -t cifs -o username=a4d,password=$1 //net-store.local/Plex /media/Plex/
-sudo mount -t cifs -o username=a4d,password=$1 //net-store.local/Emby /media/Emby/
+sudo mount -t cifs -o uid=1000,username=a4d,password=$1 //net-store.local/Plex /media/Plex/
+sudo mount -t cifs -o uid=1000,username=a4d,password=$1 //net-store.local/Emby /media/Emby/
 
 # Start Docker daemon
 sudo systemctl start docker
 
 # Start container
-sudo docker compose up -d
+docker compose up -d
