@@ -1,10 +1,10 @@
 {
-    "albumFolderFormat": "{ArtistName}/{Flag} {AlbumTitle} [{AlbumID}] [{AlbumYear}]",
+    "albumFolderFormat": "{ArtistName}/{AlbumTitle} [{AlbumYear}]",
     "apiKeyIndex": 4,
     "audioQuality": "Master",
     "checkExist": true,
     "downloadDelay": true,
-    "downloadPath": "./download/",
+    "downloadPath": "./downloads/",
     "includeEP": true,
     "language": 0,
     "lyricFile": false,
