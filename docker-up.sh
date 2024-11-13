@@ -29,9 +29,16 @@ mkdir -p /media/Emby \
 	/media/volume/emby/config \
 	/media/volume/emby/transcode
 
+# Drives spin down when not in use
+# Ping them to wake them up then wait
+ping //net-store.local
+sleep 15
+
 # Mount network drive
 sudo mount -t cifs -o uid=1000,username=a4d,password=$1 //net-store.local/Plex /media/Plex/
 sudo mount -t cifs -o uid=1000,username=a4d,password=$1 //net-store.local/Emby /media/Emby/
+
+sleep 15
 
 # Start Docker daemon
 sudo systemctl start docker
