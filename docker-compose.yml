@@ -20,39 +20,6 @@ services:
     privileged: true
     restart: unless-stopped
 
-  emby:
-    image: lscr.io/linuxserver/emby:latest
-    container_name: emby
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Chicago
-    volumes:
-      - /media/volume/emby/config:/config
-      - /media/volume/emby/data/temp:/data/temp
-      - /media/volume/emby/transcode:/transcode
-      - /media/Emby:/data/Emby
-    ports:
-      - 8096:8096
-    devices:
-      - "/dev/dri:/dev/dri"
-    privileged: true
-    restart: unless-stopped
-
-  embystat:
-    image: lscr.io/linuxserver/embystat:latest
-    container_name: embystat
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-    volumes:
-      - /media/volume/emby/config:/config
-    ports:
-      - 6555:6555
-    privileged: true
-    restart: unless-stopped
-
   # tidal:
   #   build: 
   #     context: .
