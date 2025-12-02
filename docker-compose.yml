@@ -1,7 +1,7 @@
 version: "3"
 services:
   plex:
-    image: quay.io/linuxserver.io/plex:latest
+    image: quay.io/linuxserver.io/plex:amd64-latest
     container_name: plex
     network_mode: host
     environment:
