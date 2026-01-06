@@ -1,6 +1,6 @@
-# Install tools and a bunch of docker shit.
+# Install tools and docker dependencies
 sudo apt update -y
-sudo apt install -y ca-certificates curl gnupg cifs-utils
+sudo apt install -y ca-certificates curl gnupg cifs-utils netcat-openbsd
 
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -14,6 +14,36 @@ echo \
 sudo apt update -y
 
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Function to wait for NAS to be ready
+wait_for_nas() {
+    local host="net-store.local"
+    local max_attempts=10
+    local attempt=0
+    
+    echo "Waking up NAS at $host..."
+    
+    # Initial ping to wake the drive (use correct syntax)
+    ping -c 3 "$host" > /dev/null 2>&1
+    
+    # Wait for SMB port (445) to be available
+    while [ $attempt -lt $max_attempts ]; do
+        if nc -z -w 2 "$host" 445 2>/dev/null; then
+            echo "NAS is awake and SMB service is ready!"
+            # Give it a moment for shares to fully initialize
+            sleep 2
+            return 0
+        fi
+        
+        echo "Waiting for NAS to wake up... (attempt $((attempt + 1))/$max_attempts)"
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+    
+    echo "ERROR: NAS did not wake up within expected time"
+    return 1
+}
+
 
 # Create plex directories
 mkdir -p /media/Plex \
@@ -29,16 +59,19 @@ mkdir -p /media/Emby \
 	/media/volume/emby/config \
 	/media/volume/emby/transcode
 
-# Drives spin down when not in use
-# Ping them to wake them up then wait
-ping //net-store.local
-sleep 15
+# Wake NAS and wait for it to be ready
+if ! wait_for_nas; then
+    echo "Failed to wake NAS. Exiting."
+    exit 1
+fi
 
-# Mount network drive
-sudo mount -t cifs -o uid=1000,username=a4d,password=$1 //net-store.local/Plex /media/Plex/
-sudo mount -t cifs -o uid=1000,username=a4d,password=$1 //net-store.local/Emby /media/Emby/
+# Mount network drives
+sudo mount -t cifs -o uid=1000,username=a4d,password="$1" //net-store.local/Plex /media/Plex/ || {
+    echo "Failed to mount Plex share"
+    exit 1
+}
 
-sleep 15
+echo "Mounts successful!"
 
 # Start Docker daemon
 sudo systemctl start docker
