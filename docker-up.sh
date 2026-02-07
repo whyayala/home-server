@@ -1,3 +1,31 @@
+#!/bin/bash
+set -e
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    # Use set -a to export all variables automatically
+    set -a
+    source .env
+    set +a
+else
+    echo "ERROR: .env file not found. Please create one from .env.example"
+    exit 1
+fi
+
+# Create CIFS credentials file for secure mounting
+CREDS_FILE="/tmp/.nas_credentials_$$"
+cat > "$CREDS_FILE" <<EOF
+username=${NAS_USERNAME}
+password=${NAS_PASSWORD}
+EOF
+chmod 600 "$CREDS_FILE"
+
+# Cleanup function to remove credentials file
+cleanup() {
+    rm -f "$CREDS_FILE"
+}
+trap cleanup EXIT
+
 # Install tools and docker dependencies
 sudo apt update -y
 sudo apt install -y ca-certificates curl gnupg cifs-utils netcat-openbsd
@@ -17,7 +45,7 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 
 # Function to wait for NAS to be ready
 wait_for_nas() {
-    local host="net-store.local"
+    local host="${NAS_HOST}"
     local max_attempts=10
     local attempt=0
     
@@ -65,9 +93,13 @@ if ! wait_for_nas; then
     exit 1
 fi
 
-# Mount network drives
-sudo mount -t cifs -o uid=1000,username=a4d,password="$1" //net-store.local/Plex /media/Plex/ || {
+# Mount network drives using credentials file
+sudo mount -t cifs -o uid=${PLEX_UID},credentials="$CREDS_FILE" //${NAS_HOST}/Plex /media/Plex/ || {
     echo "Failed to mount Plex share"
+    echo "Check that:"
+    echo "  1. NAS is accessible: ping ${NAS_HOST}"
+    echo "  2. Credentials are correct in .env file"
+    echo "  3. Share name is correct: //${NAS_HOST}/Plex"
     exit 1
 }
 

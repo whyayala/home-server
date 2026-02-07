@@ -1,15 +1,35 @@
 version: "3"
 services:
+  # tailscale:
+  #   image: tailscale/tailscale:latest
+  #   container_name: tailscale
+  #   hostname: plex-server
+  #   network_mode: host
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #   volumes:
+  #     - /var/lib/tailscale:/var/lib/tailscale
+  #     - /dev/net/tun:/dev/net/tun
+  #   environment:
+  #     - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+  #     - TS_STATE_DIR=/var/lib/tailscale
+  #     - TS_EXTRA_ARGS=--advertise-tags=tag:server
+  #   restart: unless-stopped
+
   plex:
     image: quay.io/linuxserver.io/plex:amd64-latest
     container_name: plex
     network_mode: host
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Chicago
+      - PUID=${PLEX_UID:-1000}
+      - PGID=${PLEX_GID:-1000}
+      - TZ=${PLEX_TZ:-America/Chicago}
       - VERSION=docker
-      - PLEX_CLAIM=9-WdsC7QR9cd7bzo9xry
+      # Hardware transcoding for AMD GPU
+      - LIBVA_DRIVER_NAME=radeonsi
+      - GPU_DRIVER=amd
+      # PLEX_CLAIM only needed for initial setup - remove after first run for security
     volumes:
       - /media/volume/plex/config:/config
       - /media/volume/plex/data/temp:/data/temp
@@ -17,7 +37,9 @@ services:
       - /media/Plex:/data/Plex
     devices:
       - "/dev/dri:/dev/dri"
-    privileged: true
+    group_add:
+      - "110"  # render group for GPU access
+      - "44"   # video group for GPU access
     restart: unless-stopped
 
   # tidal:
