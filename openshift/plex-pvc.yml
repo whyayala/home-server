@@ -62,7 +62,7 @@ metadata:
     app: plex
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 500Gi

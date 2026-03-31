@@ -64,7 +64,7 @@ spec:
   capacity:
     storage: 500Gi
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   hostPath:
     path: /media/Plex

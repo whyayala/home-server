@@ -1,0 +1,32 @@
+# BuildConfig to build the tidal-dl image from the repo's Dockerfile.
+# Usage: oc start-build tidal --from-dir=. --follow
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: tidal
+  namespace: home-server
+  labels:
+    app: tidal
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: tidal:latest
+  source:
+    type: Binary
+    dockerfile: |
+      FROM python:3.9.19-alpine3.19
+      RUN python -m pip install --upgrade pip
+      RUN pip install tidal-dl
+  strategy:
+    type: Docker
+    dockerStrategy: {}
+  triggers: []
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: tidal
+  namespace: home-server
+  labels:
+    app: tidal

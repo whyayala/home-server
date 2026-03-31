@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tidal-downloads-pvc
+  namespace: home-server
+  labels:
+    app: tidal
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  selector:
+    matchLabels:
+      app: tidal
+      volume: downloads
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tidal-config-pvc
+  namespace: home-server
+  labels:
+    app: tidal
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      app: tidal
+      volume: config

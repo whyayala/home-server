@@ -76,7 +76,9 @@ wait_for_nas() {
 sudo mkdir -p /media/Plex \
     /media/volume/plex/data/temp \
     /media/volume/plex/config \
-    /media/volume/plex/transcode
+    /media/volume/plex/transcode \
+    /media/volume/tidal/downloads \
+    /media/volume/tidal/config
 
 # Wake NAS and wait for it
 if ! wait_for_nas; then
@@ -111,29 +113,46 @@ echo "Applying OpenShift manifests..."
 # 1. Namespace
 oc apply -f "$MANIFESTS/namespace.yml"
 
-# 2. Service account (must exist before SCC references it)
+# 2. Service accounts (must exist before SCCs reference them)
 oc apply -f "$MANIFESTS/plex-sa.yml"
+oc apply -f "$MANIFESTS/tidal-sa.yml"
 
 # 3. Security Context Constraints (cluster-scoped, needs cluster-admin)
 oc apply -f "$MANIFESTS/plex-scc.yml"
+oc apply -f "$MANIFESTS/tidal-scc.yml"
 
 # 4. Secret — substitute env vars into the template
 envsubst < "$MANIFESTS/plex-secret.yml" | oc apply -f -
 
 # 5. Persistent Volumes (cluster-scoped) and PVCs (namespaced)
 oc apply -f "$MANIFESTS/plex-pv.yml"
+oc apply -f "$MANIFESTS/tidal-pv.yml"
 oc apply -f "$MANIFESTS/plex-pvc.yml"
+oc apply -f "$MANIFESTS/tidal-pvc.yml"
 
-# 6. Deployment
+# 6. Build tidal image (ImageStream + BuildConfig, then trigger build)
+oc apply -f "$MANIFESTS/tidal-buildconfig.yml"
+echo ""
+echo "Building tidal image..."
+oc start-build tidal -n home-server --from-dir="$SCRIPT_DIR" --follow || {
+    echo "WARNING: tidal image build failed. The tidal deployment may not start."
+    echo "You can retry with: oc start-build tidal -n home-server --from-dir=$SCRIPT_DIR --follow"
+}
+
+# 7. Deployments
 oc apply -f "$MANIFESTS/plex-deployment.yml"
+oc apply -f "$MANIFESTS/tidal-deployment.yml"
 
 # ---------------------------------------------------------------------------
-# Wait for rollout
+# Wait for rollouts
 # ---------------------------------------------------------------------------
 echo ""
 echo "Waiting for Plex deployment to roll out..."
 oc rollout status deployment/plex -n home-server --timeout=120s
 
+echo "Waiting for Tidal deployment to roll out..."
+oc rollout status deployment/tidal -n home-server --timeout=120s
+
 echo ""
-echo "Plex is running. Pod status:"
-oc get pods -n home-server -l app=plex
+echo "All pods:"
+oc get pods -n home-server

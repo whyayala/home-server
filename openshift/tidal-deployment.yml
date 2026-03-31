@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tidal
+  namespace: home-server
+  labels:
+    app: tidal
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tidal
+  template:
+    metadata:
+      labels:
+        app: tidal
+    spec:
+      serviceAccountName: tidal-sa
+      restartPolicy: Always
+
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+        - name: tidal
+          image: image-registry.openshift-image-registry.svc:5000/home-server/tidal:latest
+          # Keep the container running so you can exec in to run tidal-dl
+          command: ["sleep", "infinity"]
+
+          securityContext:
+            allowPrivilegeEscalation: false
+
+          volumeMounts:
+            - name: downloads
+              mountPath: /root/downloads
+            - name: config
+              mountPath: /root/.config/tidal
+            - name: media
+              mountPath: /data/Plex
+
+      volumes:
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: tidal-downloads-pvc
+        - name: config
+          persistentVolumeClaim:
+            claimName: tidal-config-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: plex-media-pvc

@@ -20,18 +20,24 @@ fi
 echo "Tearing down home-server resources..."
 
 # ---------------------------------------------------------------------------
-# Delete namespaced resources (deployment, PVCs, secret, service account)
+# Delete namespaced resources (deployments, PVCs, secrets, service accounts)
 # ---------------------------------------------------------------------------
 oc delete -f "$MANIFESTS/plex-deployment.yml" --ignore-not-found
+oc delete -f "$MANIFESTS/tidal-deployment.yml" --ignore-not-found
+oc delete -f "$MANIFESTS/tidal-buildconfig.yml" --ignore-not-found
 oc delete -f "$MANIFESTS/plex-pvc.yml" --ignore-not-found
+oc delete -f "$MANIFESTS/tidal-pvc.yml" --ignore-not-found
 oc delete -f "$MANIFESTS/plex-secret.yml" --ignore-not-found 2>/dev/null || true
 oc delete -f "$MANIFESTS/plex-sa.yml" --ignore-not-found
+oc delete -f "$MANIFESTS/tidal-sa.yml" --ignore-not-found
 
 # ---------------------------------------------------------------------------
 # Delete cluster-scoped resources
 # ---------------------------------------------------------------------------
 oc delete -f "$MANIFESTS/plex-pv.yml" --ignore-not-found
+oc delete -f "$MANIFESTS/tidal-pv.yml" --ignore-not-found
 oc delete -f "$MANIFESTS/plex-scc.yml" --ignore-not-found
+oc delete -f "$MANIFESTS/tidal-scc.yml" --ignore-not-found
 
 # ---------------------------------------------------------------------------
 # Delete namespace (catches anything left over)

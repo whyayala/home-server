@@ -1,0 +1,45 @@
+# Minimal SCC for tidal-dl.
+# No host network, no GPU, no privileged access.
+# Only allows hostPath mounts for its config and the shared media volume.
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: tidal-scc
+allowHostDirVolumePlugin: true
+allowHostNetwork: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowHostIPC: false
+allowHostPID: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: MustRunAs
+  uid: 1000
+seLinuxContext:
+  type: RunAsAny
+fsGroup:
+  type: MustRunAs
+  ranges:
+    - min: 1000
+      max: 1000
+supplementalGroups:
+  type: RunAsAny
+volumes:
+  - hostPath
+  - secret
+  - configMap
+  - emptyDir
+  - persistentVolumeClaim
+allowedHostPaths:
+  - pathPrefix: /media/volume/tidal
+    readOnly: false
+  - pathPrefix: /media/Plex
+    readOnly: false
+users:
+  - system:serviceaccount:home-server:tidal-sa
+groups: []
+priority: 10
+readOnlyRootFilesystem: false

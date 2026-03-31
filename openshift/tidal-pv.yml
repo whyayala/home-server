@@ -1,0 +1,36 @@
+# Tidal-specific volumes for downloads and config.
+# The shared media volume (plex-media-pv) is referenced via plex-media-pvc.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tidal-downloads-pv
+  labels:
+    app: tidal
+    volume: downloads
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /media/volume/tidal/downloads
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tidal-config-pv
+  labels:
+    app: tidal
+    volume: config
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /media/volume/tidal/config
+    type: DirectoryOrCreate
