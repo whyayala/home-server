@@ -81,6 +81,79 @@ docker logs tailscale
 docker exec tailscale tailscale ip -4
 ```
 
+## OpenShift Deployment
+
+An alternative to the Docker Compose setup, the OpenShift manifests in `openshift/` deploy Plex and Tidal to a local OpenShift cluster.
+
+### Starting the cluster workloads
+```bash
+oc login <your-cluster>
+./openshift-up.sh
+```
+
+This script will:
+1. Wake the NAS and mount the CIFS share
+2. Apply all OpenShift manifests (namespace, service accounts, SCCs, PVs, PVCs, secrets)
+3. Build the tidal-dl image via the OpenShift internal registry
+4. Deploy the Plex and Tidal pods
+
+### Stopping the cluster workloads
+```bash
+./openshift-down.sh
+```
+
+### Checking status
+```bash
+oc get pods -n home-server
+oc logs deployment/plex -n home-server
+oc logs deployment/tidal -n home-server
+```
+
+### Using tidal-dl
+
+The tidal container runs as a long-lived pod that you exec into to download music.
+
+**1. Open a shell in the tidal pod:**
+```bash
+oc exec -it deployment/tidal -n home-server -- sh
+```
+
+**2. First-time setup — log in to Tidal:**
+```bash
+tidal-dl
+```
+Follow the prompts to authenticate. Your token is persisted in the `tidal-config-pvc` volume at `/root/.config/tidal`, so you only need to do this once.
+
+**3. Download an album or track:**
+```bash
+tidal-dl -l <tidal-url-or-id>
+```
+For example:
+```bash
+tidal-dl -l https://tidal.com/browse/album/12345678
+```
+
+Downloads land in `/root/downloads` inside the pod (backed by `tidal-downloads-pvc`).
+
+**4. Move downloads into the Plex library:**
+
+The Plex media volume is mounted at `/data/Plex` inside the tidal pod. Copy or move your downloads there so Plex can pick them up:
+```bash
+mv /root/downloads/ArtistName /data/Plex/Music/
+```
+
+After moving files, trigger a library scan in Plex (Settings → Libraries → Scan Library Files) or wait for the scheduled scan.
+
+**5. Exit the pod:**
+```bash
+exit
+```
+
+**Tip:** You can run a one-off download without an interactive shell:
+```bash
+oc exec deployment/tidal -n home-server -- tidal-dl -l <tidal-url-or-id>
+```
+
 ## Remote Access Setup
 
 ### On this server
