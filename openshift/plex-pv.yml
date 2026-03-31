@@ -1,0 +1,71 @@
+# Persistent Volumes backed by host paths.
+# The NAS CIFS mount at /media/Plex is handled by the startup script
+# before these manifests are applied, same as the Docker workflow.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plex-config-pv
+  labels:
+    app: plex
+    volume: config
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /media/volume/plex/config
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plex-data-temp-pv
+  labels:
+    app: plex
+    volume: data-temp
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /media/volume/plex/data/temp
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plex-transcode-pv
+  labels:
+    app: plex
+    volume: transcode
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /media/volume/plex/transcode
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: plex-media-pv
+  labels:
+    app: plex
+    volume: media
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /media/Plex
+    type: Directory

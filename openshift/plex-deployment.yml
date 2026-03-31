@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: home-server
+  labels:
+    app: plex
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      serviceAccountName: plex-sa
+      hostNetwork: true
+      restartPolicy: Always
+
+      # Run as the same UID/GID the Docker setup uses
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+        supplementalGroups:
+          - 44   # video — GPU access
+          - 110  # render — GPU access
+
+      containers:
+        - name: plex
+          image: quay.io/linuxserver.io/plex:amd64-latest
+          env:
+            - name: PUID
+              valueFrom:
+                secretKeyRef:
+                  name: plex-env
+                  key: PUID
+            - name: PGID
+              valueFrom:
+                secretKeyRef:
+                  name: plex-env
+                  key: PGID
+            - name: TZ
+              valueFrom:
+                secretKeyRef:
+                  name: plex-env
+                  key: TZ
+            - name: VERSION
+              value: "docker"
+            - name: LIBVA_DRIVER_NAME
+              value: "radeonsi"
+            - name: GPU_DRIVER
+              value: "amd"
+
+          # No blanket privileged mode — only the GPU device is exposed
+          securityContext:
+            allowPrivilegeEscalation: false
+
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: data-temp
+              mountPath: /data/temp
+            - name: transcode
+              mountPath: /transcode
+            - name: media
+              mountPath: /data/Plex
+            - name: dri
+              mountPath: /dev/dri
+
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: plex-config-pvc
+        - name: data-temp
+          persistentVolumeClaim:
+            claimName: plex-data-temp-pvc
+        - name: transcode
+          persistentVolumeClaim:
+            claimName: plex-transcode-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: plex-media-pvc
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory

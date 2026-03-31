@@ -1,0 +1,56 @@
+# Custom SecurityContextConstraints for Plex
+# Grants only the specific privileges Plex needs:
+#   - Host network (for DLNA/discovery)
+#   - /dev/dri device access (AMD GPU transcoding)
+#   - Specific supplemental groups (render + video)
+#   - Specific host path mounts (no blanket access)
+# This avoids granting the full "privileged" SCC.
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: plex-scc
+allowHostDirVolumePlugin: true
+allowHostNetwork: true
+allowHostPorts: true
+allowPrivilegedContainer: false
+allowHostIPC: false
+allowHostPID: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: MustRunAs
+  uid: 1000
+seLinuxContext:
+  type: RunAsAny
+fsGroup:
+  type: MustRunAs
+  ranges:
+    - min: 1000
+      max: 1000
+supplementalGroups:
+  type: MustRunAs
+  ranges:
+    - min: 44
+      max: 44
+    - min: 110
+      max: 110
+volumes:
+  - hostPath
+  - secret
+  - configMap
+  - emptyDir
+  - persistentVolumeClaim
+allowedHostPaths:
+  - pathPrefix: /dev/dri
+    readOnly: false
+  - pathPrefix: /media/volume/plex
+    readOnly: false
+  - pathPrefix: /media/Plex
+    readOnly: false
+users:
+  - system:serviceaccount:home-server:plex-sa
+groups: []
+priority: 10
+readOnlyRootFilesystem: false
