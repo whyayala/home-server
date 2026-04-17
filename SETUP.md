@@ -85,6 +85,50 @@ docker exec tailscale tailscale ip -4
 
 An alternative to the Docker Compose setup, the OpenShift manifests in `openshift/` deploy Plex and Tidal to a local OpenShift cluster.
 
+### Prerequisites
+
+**OpenShift Local (CRC)** — provides a single-node OpenShift cluster on your machine:
+```bash
+# Download from https://console.redhat.com/openshift/create/local (requires a free Red Hat account)
+# After downloading and extracting:
+sudo mv crc /usr/local/bin/
+
+# Initial setup (allocates VM resources, pulls the cluster image — only needed once)
+crc setup
+
+# Start the cluster
+crc start
+
+# The output prints credentials and an oc login command — run it:
+eval $(crc oc-env)
+oc login -u kubeadmin https://api.crc.testing:6443
+```
+
+**oc CLI** — the OpenShift client (bundled with CRC, or install standalone):
+```bash
+# Option A: use the one bundled with CRC
+eval $(crc oc-env)
+
+# Option B: install standalone
+# Download from https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/
+# Extract and move to your PATH:
+sudo mv oc /usr/local/bin/
+```
+
+**System packages** required by the startup script:
+```bash
+sudo apt install -y cifs-utils netcat-openbsd gettext-base
+```
+- `cifs-utils` — mounts the NAS CIFS/SMB share
+- `netcat-openbsd` (`nc`) — probes the NAS SMB port to check readiness
+- `gettext-base` (`envsubst`) — templates environment variables into the Kubernetes secret manifest
+
+**GPU groups** — same as the Docker setup, your user needs render and video group membership for hardware transcoding:
+```bash
+sudo usermod -a -G render,video $USER
+# Log out and back in for this to take effect
+```
+
 ### Starting the cluster workloads
 ```bash
 oc login <your-cluster>
